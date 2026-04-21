@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaChain - Secure Drug Supply Chain</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h1>Pharma<span>Chain</span></h1>
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" data-page="verify">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Verify Drug</span>
+                    </button>
+                    <button class="nav-btn" data-page="add">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Drug</span>
+                    </button>
+                    <button class="nav-btn" data-page="transfer">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transfer</span>
+                    </button>
+                    <button class="nav-btn" data-page="inventory">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Inventory</span>
+                    </button>
+                </nav>
+                <div class="user-info">
+                    <div class="role-wrapper">
+                        <select id="roleSelect" class="role-select">
+                            <option value="">Select Role</option>
+                            <option value="manufacturer">🏭 Manufacturer</option>
+                            <option value="distributor">🚚 Distributor</option>
+                            <option value="pharmacy">🏥 Pharmacy</option>
+                        </select>
+                    </div>
+                    <button id="connectWallet" class="wallet-btn">
+                        <i class="fas fa-wallet"></i>
+                        <span>Connect</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Verify Drug Page -->
+            <section id="verify-page" class="page active">
+                <div class="page-header">
+                    <div class="header-badge">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Verification</span>
+                    </div>
+                    <h2>Verify Drug Authenticity</h2>
+                    <p>Scan QR code or enter batch ID to verify drug authenticity and track complete supply chain</p>
+                </div>
+                
+                <div class="verify-container">
+                    <div class="scan-section glass-card">
+                        <div class="scanner-container">
+                            <div class="scanner-frame">
+                                <div id="qr-reader"></div>
+                                <div class="scanner-glow"></div>
+                            </div>
+                            <button id="startScan" class="btn btn-gradient btn-large">
+                                <i class="fas fa-camera"></i>
+                                <span>Start QR Scanner</span>
+                            </button>
+                        </div>
+                        <div class="manual-input">
+                            <p class="input-label">Or enter batch ID manually:</p>
+                            <div class="input-wrapper">
+                                <div class="input-field">
+                                    <input type="text" id="batchIdVerify" placeholder="DRUG-001">
+                                    <i class="fas fa-hashtag"></i>
+                                </div>
+                                <button id="verifyBtn" class="btn btn-gradient">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="verificationResult" class="verification-result glass-card hidden">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Add Drug Page -->
+            <section id="add-page" class="page">
+                <div class="page-header">
+                    <div class="header-badge">
+                        <i class="fas fa-plus"></i>
+                        <span>Registration</span>
+                    </div>
+                    <h2>Add New Drug Batch</h2>
+                    <p>Register a new drug batch in the blockchain supply chain (Manufacturer only)</p>
+                </div>
+                
+                <form id="addDrugForm" class="form-container glass-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Batch ID *</label>
+                            <div class="input-field">
+                                <input type="text" id="batchId" name="batchId" required 
+                                       placeholder="DRUG-001" pattern="[A-Z0-9-]+">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Drug Name *</label>
+                            <div class="input-field">
+                                <input type="text" id="drugName" name="drugName" required 
+                                       placeholder="Paracetamol 500mg">
+                                <i class="fas fa-pills"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Manufacturer *</label>
+                            <div class="input-field">
+                                <input type="text" id="manufacturer" name="manufacturer" required 
+                                       placeholder="PharmaCorp Ltd">
+                                <i class="fas fa-industry"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Manufacture Date *</label>
+                            <div class="input-field">
+                                <input type="datetime-local" id="manufactureDate" name="manufactureDate" required>
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Expiry Date *</label>
+                            <div class="input-field">
+                                <input type="datetime-local" id="expiryDate" name="expiryDate" required>
+                                <i class="fas fa-calendar-times"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-gradient btn-large btn-success">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Add Drug Batch</span>
+                    </button>
+                </form>
+                
+                <div id="addResult" class="result-message glass-card hidden"></div>
+            </section>
+
+            <!-- Transfer Drug Page -->
+            <section id="transfer-page" class="page">
+                <div class="page-header">
+                    <div class="header-badge">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transfer</span>
+                    </div>
+                    <h2>Transfer Ownership</h2>
+                    <p>Transfer drug to next party in supply chain with blockchain security</p>
+                </div>
+                
+                <form id="transferForm" class="form-container glass-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Batch ID *</label>
+                            <div class="input-field">
+                                <input type="text" id="transferBatchId" name="transferBatchId" required 
+                                       placeholder="DRUG-001">
+                                <i class="fas fa-hashtag"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>New Owner Address *</label>
+                            <div class="input-field">
+                                <input type="text" id="newOwnerAddress" name="newOwnerAddress" required 
+                                       placeholder="0x1234..." pattern="0x[a-fA-F0-9]{40}">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>New Owner Name *</label>
+                            <div class="input-field">
+                                <input type="text" id="newOwnerName" name="newOwnerName" required 
+                                       placeholder="MedDistributor Inc">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-gradient btn-large">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>Transfer Drug</span>
+                    </button>
+                </form>
+                
+                <div id="transferResult" class="result-message glass-card hidden"></div>
+            </section>
+
+            <!-- Inventory Page -->
+            <section id="inventory-page" class="page">
+                <div class="page-header">
+                    <div class="header-badge">
+                        <i class="fas fa-warehouse"></i>
+                        <span>Inventory</span>
+                    </div>
+                    <h2>Drug Inventory</h2>
+                    <p>View all registered drug batches across the supply chain</p>
+                </div>
+                
+                <div class="inventory-controls glass-card">
+                    <div class="inventory-controls">
+                        <input type="text" id="searchInventory" placeholder="Search by batch ID or drug name...">
+                        <button id="refreshInventory" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button id="importFromHF" class="btn btn-gradient">
+                            <i class="fas fa-cloud-download-alt"></i> Import from Hugging Face
+                        </button>
+                    </div>
+                    
+                    <div id="importResult" class="result-message hidden"></div>
+                </div>
+                
+                <div id="inventoryTable" class="table-container glass-card">
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Batch ID</th>
+                                    <th>Drug Name</th>
+                                    <th>Manufacturer</th>
+                                    <th>Manufacture Date</th>
+                                    <th>Expiry Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">
+                <span>Processing...</span>
+                <div class="loading-dots">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">Success!</span>
+            <button class="toast-close"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
