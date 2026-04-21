@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import os
-import jslon
-import sqite3
+import json
+import sqlite3
 from datetime import datetime, timezone
 import qrcode
 from io import BytesIO
@@ -63,12 +63,6 @@ DB_PATH = "pharma_supply_chain.db"
 # API Configuration
 API_HOST = "0.0.0.0"
 API_PORT = 8000
-    
-    # Database configuration
-    DB_PATH = "pharma_supply_chain.db"
-    
-    # Use in-memory storage for serverless environments
-    USE_MEMORY_DB = os.getenv("USE_MEMORY_DB", "false").lower() == "true"
 
 config = Config()
 
