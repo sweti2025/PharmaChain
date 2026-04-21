@@ -9,8 +9,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List, Optional
 import os
-import json
-import sqlite3
+import jslon
+import sqite3
 from datetime import datetime, timezone
 import qrcode
 from io import BytesIO
@@ -19,7 +19,14 @@ from web3 import Web3
 from eth_account import Account
 import logging
 import asyncio
-from datasets import load_dataset
+
+# Try to import datasets, but make it optional for Vercel deployment
+try:
+    from datasets import load_dataset
+    DATASETS_AVAILABLE = True
+except ImportError:
+    DATASETS_AVAILABLE = False
+    load_dataset = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -46,9 +53,16 @@ class Config:
     # Blockchain configuration
     INFURA_PROJECT_ID = os.getenv("INFURA_PROJECT_ID", "your-infura-project-id")
     SEPOLIA_RPC_URL = f"https://sepolia.infura.io/v3/{INFURA_PROJECT_ID}"
-    CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "0x0000000000000000000000000000000000000000")  # Update after deployment
-    PRIVATE_KEY = os.getenv("PRIVATE_KEY", "your-private-key")  # For demo purposes only
+    CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "0x0000000000000000000000000000000000000000")
+    PRIVATE_KEY = os.getenv("PRIVATE_KEY", "your-private-key-here")
     CHAIN_ID = 11155111  # Sepolia testnet
+
+# Database Configuration
+DB_PATH = "pharma_supply_chain.db"
+
+# API Configuration
+API_HOST = "0.0.0.0"
+API_PORT = 8000
     
     # Database configuration
     DB_PATH = "pharma_supply_chain.db"
@@ -140,8 +154,10 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
         if not config.USE_MEMORY_DB:
             init_database()
         
-        # Try to load the specified dataset
+        # Try to load the specified dataset (skip if datasets library not available)
         try:
+            if not DATASETS_AVAILABLE:
+                raise ImportError("datasets library not available")
             dataset = load_dataset(dataset_name, split="train")
             logger.info(f"Successfully loaded dataset: {dataset_name}")
         except Exception as e:
