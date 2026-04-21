@@ -52,8 +52,14 @@ class Config:
     
     # Database configuration
     DB_PATH = "pharma_supply_chain.db"
+    
+    # Use in-memory storage for serverless environments
+    USE_MEMORY_DB = os.getenv("USE_MEMORY_DB", "false").lower() == "true"
 
 config = Config()
+
+# In-memory storage for serverless environments
+memory_db = {}
 
 # Web3 setup
 w3 = Web3(Web3.HTTPProvider(config.SEPOLIA_RPC_URL))
@@ -130,8 +136,9 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
     try:
         logger.info(f"Loading dataset: {dataset_name}")
         
-        # Ensure database is initialized
-        init_database()
+        # Initialize database only if not using memory DB
+        if not config.USE_MEMORY_DB:
+            init_database()
         
         # Try to load the specified dataset
         try:
@@ -158,9 +165,6 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
             imported_count = 0
             errors = []
             
-            conn = sqlite3.connect(config.DB_PATH)
-            cursor = conn.cursor()
-            
             for i, drug in enumerate(sample_drugs[:max_records]):
                 try:
                     drug_name = drug["name"]
@@ -178,19 +182,30 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
                     qr_image.save(buffered, format="PNG")
                     qr_code = base64.b64encode(buffered.getvalue()).decode()
                     
-                    cursor.execute("""
-                        INSERT OR REPLACE INTO drug_batches (batch_id, drug_name, manufacturer, manufacture_date, expiry_date, qr_code)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    """, (batch_id, drug_name, manufacturer, current_date, expiry_date, qr_code))
+                    if config.USE_MEMORY_DB:
+                        memory_db[batch_id] = {
+                            "batch_id": batch_id,
+                            "drug_name": drug_name,
+                            "manufacturer": manufacturer,
+                            "manufacture_date": current_date,
+                            "expiry_date": expiry_date,
+                            "qr_code": qr_code
+                        }
+                    else:
+                        conn = sqlite3.connect(config.DB_PATH)
+                        cursor = conn.cursor()
+                        cursor.execute("""
+                            INSERT OR REPLACE INTO drug_batches (batch_id, drug_name, manufacturer, manufacture_date, expiry_date, qr_code)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (batch_id, drug_name, manufacturer, current_date, expiry_date, qr_code))
+                        conn.commit()
+                        conn.close()
                     
                     imported_count += 1
                     
                 except Exception as e:
                     errors.append(f"Record {i}: {str(e)}")
                     logger.error(f"Error importing sample drug {i}: {str(e)}")
-            
-            conn.commit()
-            conn.close()
             
             logger.info(f"Successfully imported {imported_count} sample drugs")
             
@@ -204,9 +219,6 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
         # Original dataset loading logic
         imported_count = 0
         errors = []
-        
-        conn = sqlite3.connect(config.DB_PATH)
-        cursor = conn.cursor()
         
         for i, record in enumerate(dataset):
             if i >= max_records:
@@ -228,19 +240,30 @@ def import_drug_data_from_huggingface(dataset_name: str = "Fda/Drug-Labeling", m
                 qr_image.save(buffered, format="PNG")
                 qr_code = base64.b64encode(buffered.getvalue()).decode()
                 
-                cursor.execute("""
-                    INSERT OR REPLACE INTO drug_batches (batch_id, drug_name, manufacturer, manufacture_date, expiry_date, qr_code)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (batch_id, drug_name, manufacturer, current_date, expiry_date, qr_code))
+                if config.USE_MEMORY_DB:
+                    memory_db[batch_id] = {
+                        "batch_id": batch_id,
+                        "drug_name": drug_name,
+                        "manufacturer": manufacturer,
+                        "manufacture_date": current_date,
+                        "expiry_date": expiry_date,
+                        "qr_code": qr_code
+                    }
+                else:
+                    conn = sqlite3.connect(config.DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO drug_batches (batch_id, drug_name, manufacturer, manufacture_date, expiry_date, qr_code)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (batch_id, drug_name, manufacturer, current_date, expiry_date, qr_code))
+                    conn.commit()
+                    conn.close()
                 
                 imported_count += 1
                 
             except Exception as e:
                 errors.append(f"Record {i}: {str(e)}")
                 logger.error(f"Error importing record {i}: {str(e)}")
-        
-        conn.commit()
-        conn.close()
         
         logger.info(f"Successfully imported {imported_count} drugs from {dataset_name}")
         
@@ -454,7 +477,20 @@ def generate_qr_code(batch_id: str) -> str:
     return f"data:image/png;base64,{img_str}"
 
 def save_drug_to_db(drug_data: DrugCreate, qr_code: str):
-    """Save drug information to local database"""
+    """Save drug information to local database or in-memory storage"""
+    if config.USE_MEMORY_DB:
+        # Use in-memory storage for serverless environments
+        memory_db[drug_data.batch_id] = {
+            "batch_id": drug_data.batch_id,
+            "drug_name": drug_data.name,
+            "manufacturer": drug_data.manufacturer,
+            "manufacture_date": drug_data.manufacture_date,
+            "expiry_date": drug_data.expiry_date,
+            "qr_code": qr_code
+        }
+        logger.info(f"Saved drug {drug_data.batch_id} to memory storage")
+        return
+    
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
     
@@ -478,7 +514,21 @@ def save_drug_to_db(drug_data: DrugCreate, qr_code: str):
         conn.close()
 
 def get_drug_from_db(batch_id: str) -> Optional[dict]:
-    """Get drug information from local database"""
+    """Get drug information from local database or in-memory storage"""
+    if config.USE_MEMORY_DB:
+        # Use in-memory storage for serverless environments
+        drug_data = memory_db.get(batch_id)
+        if drug_data:
+            return {
+                "batch_id": drug_data["batch_id"],
+                "name": drug_data["drug_name"],
+                "manufacturer": drug_data["manufacturer"],
+                "manufacture_date": drug_data["manufacture_date"],
+                "expiry_date": drug_data["expiry_date"],
+                "qr_code": drug_data["qr_code"]
+            }
+        return None
+    
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
     
@@ -755,6 +805,19 @@ async def assign_user_role(user_role: UserRole):
 async def list_drugs():
     """List all drug batches"""
     try:
+        if config.USE_MEMORY_DB:
+            # Use in-memory storage for serverless environments
+            drugs = []
+            for batch_id, drug_data in memory_db.items():
+                drugs.append({
+                    "batch_id": drug_data["batch_id"],
+                    "name": drug_data["drug_name"],
+                    "manufacturer": drug_data["manufacturer"],
+                    "manufacture_date": drug_data["manufacture_date"],
+                    "expiry_date": drug_data["expiry_date"]
+                })
+            return {"drugs": drugs}
+        
         conn = sqlite3.connect(config.DB_PATH)
         cursor = conn.cursor()
         

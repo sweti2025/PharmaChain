@@ -23,5 +23,8 @@
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }
-  ]
+  ],
+  "env": {
+    "USE_MEMORY_DB": "true"
+  }
 }
