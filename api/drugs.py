@@ -3,7 +3,7 @@ import json
 # Simple in-memory storage
 drugs = []
 
-def handler(request):
+def app(request):
     """Handler for drugs list endpoint"""
     try:
         return {

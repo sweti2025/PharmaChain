@@ -4,7 +4,7 @@ from datetime import datetime
 # Shared storage
 drugs = []
 
-def handler(request):
+def app(request):
     """Handler for adding drugs endpoint"""
     try:
         # Parse request body

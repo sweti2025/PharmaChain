@@ -4,7 +4,7 @@ from datetime import datetime
 # Shared storage
 drugs = []
 
-def handler(request):
+def app(request):
     """Handler for Hugging Face import endpoint"""
     try:
         # Sample drug data (since datasets library not available on Vercel)
