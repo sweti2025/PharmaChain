@@ -1,12 +1,8 @@
-fastapi>=0.104.1
+fastapi>=0.104.0
 uvicorn>=0.24.0
-web3>=6.11.3
-pydantic>=2.5.0
-python-dotenv>=1.0.0
-qrcode[pil]>=7.4.2
-cryptography>=41.0.7
+pydantic>=2.0.0
+web3>=6.0.0
 eth-account>=0.9.0
-transformers>=4.35.0
-torch>=2.0.0
-datasets>=2.14.0
+qrcode>=7.4.0
+python-dotenv>=1.0.0
 mangum>=0.17.0
