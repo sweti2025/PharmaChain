@@ -1,7 +1,7 @@
 // Pharma Supply Chain Tracking System - Frontend JavaScript
 
 // API Configuration
-const API_BASE_URL = 'https://pharma-chain-backend.onrender.com/api';
+const API_BASE_URL = '/api';
 
 // Global Variables
 let currentUser = {
