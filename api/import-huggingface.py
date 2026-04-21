@@ -1,18 +1,12 @@
 import json
-import sys
-import os
 from datetime import datetime
 
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Shared storage
+drugs = []
 
 def handler(request):
     """Handler for Hugging Face import endpoint"""
     try:
-        # Simple in-memory storage
-        if not hasattr(handler, 'drugs'):
-            handler.drugs = []
-        
         # Sample drug data (since datasets library not available on Vercel)
         sample_drugs = [
             {"name": "Aspirin", "manufacturer": "Bayer"},
@@ -36,7 +30,7 @@ def handler(request):
                 'manufacture_date': datetime.now().isoformat(),
                 'expiry_date': (datetime.now().replace(year=datetime.now().year + 2)).isoformat()
             }
-            handler.drugs.append(drug_data)
+            drugs.append(drug_data)
             imported_count += 1
         
         return {
