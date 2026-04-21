@@ -71,3 +71,6 @@ compiled_contract.json
 
 # Blockchain
 *.json.backup
+
+.vercel
+.env*.local
